@@ -98,6 +98,36 @@
     return escaped;
   }
 
+  function showLobbyError(message) {
+    const container = document.querySelector('.join-container');
+    if (!container) return;
+
+    let errorBox = container.querySelector('.custom-lobby-error');
+    if (!errorBox) {
+      errorBox = document.createElement('div');
+      errorBox.className = 'custom-lobby-error';
+      errorBox.style.border = '1px solid #ff4444';
+      errorBox.style.backgroundColor = 'rgba(255, 68, 68, 0.1)';
+      errorBox.style.padding = '10px';
+      errorBox.style.marginBottom = '15px';
+      errorBox.style.fontSize = '11px';
+      errorBox.style.color = '#ff4444';
+      errorBox.style.letterSpacing = '1px';
+      errorBox.style.fontWeight = '700';
+      errorBox.style.fontFamily = 'var(--font-mono)';
+      container.insertBefore(errorBox, container.firstChild);
+    }
+    errorBox.textContent = '! ' + message.toUpperCase();
+    errorBox.style.display = 'block';
+  }
+
+  function hideLobbyError() {
+    const errorBox = document.querySelector('.custom-lobby-error');
+    if (errorBox) {
+      errorBox.style.display = 'none';
+    }
+  }
+
   // Open Image Lightbox
   function openLightbox(src) {
     let lightbox = document.getElementById('chat-lightbox');
@@ -905,20 +935,70 @@
         const lobbyForm = document.querySelector('.lobby-form');
         if (lobbyForm && !lobbyForm.hasAttribute('data-pwd-hook')) {
           lobbyForm.setAttribute('data-pwd-hook', 'true');
-          lobbyForm.addEventListener('submit', () => {
+          
+          let verificationInFlight = false;
+          let isVerified = false;
+
+          lobbyForm.addEventListener('submit', async (e) => {
+            if (isVerified) {
+              return; // Let React submit handle it
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (verificationInFlight) return;
+
             const roomInput = lobbyForm.querySelector('#room-input');
+            const nameInput = lobbyForm.querySelector('#name-input');
             const pwdInput = lobbyForm.querySelector('#password-input');
-            if (roomInput && pwdInput) {
-              let cleanRoom = roomInput.value.trim();
-              try {
-                if (cleanRoom.startsWith('http')) {
-                  const pathPart = new URL(cleanRoom).pathname.split('/').filter(Boolean).pop();
-                  if (pathPart) cleanRoom = pathPart;
-                }
-              } catch (e) {}
-              if (cleanRoom) {
-                sessionStorage.setItem('room_pwd_' + cleanRoom, pwdInput.value || '');
+            const submitBtn = lobbyForm.querySelector('#join-btn');
+
+            if (!roomInput || !nameInput || !submitBtn) return;
+
+            const roomVal = roomInput.value.trim();
+            const nameVal = nameInput.value.trim();
+            const pwdVal = pwdInput ? pwdInput.value : '';
+
+            if (!roomVal || !nameVal) {
+              showLobbyError('FIELDS CANNOT BE EMPTY.');
+              return;
+            }
+
+            let cleanRoom = roomVal;
+            try {
+              if (cleanRoom.startsWith('http')) {
+                const pathPart = new URL(cleanRoom).pathname.split('/').filter(Boolean).pop();
+                if (pathPart) cleanRoom = pathPart;
               }
+            } catch (err) {}
+
+            hideLobbyError();
+            verificationInFlight = true;
+            submitBtn.disabled = true;
+            const originalBtnText = submitBtn.textContent || '+';
+            submitBtn.textContent = '...';
+
+            try {
+              const res = await fetch(`/api/token?room=${encodeURIComponent(cleanRoom)}&identity=${encodeURIComponent(nameVal)}&password=${encodeURIComponent(pwdVal)}`);
+              
+              if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Failed to authenticate room.');
+              }
+
+              sessionStorage.setItem('room_pwd_' + cleanRoom, pwdVal);
+              isVerified = true;
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalBtnText;
+              
+              // Programmatically trigger React submit
+              lobbyForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            } catch (err) {
+              showLobbyError(err.message);
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalBtnText;
+              verificationInFlight = false;
             }
           });
         }

@@ -388,12 +388,25 @@ const CLEANUP_INTERVAL = 60 * 60 * 1000;
 const FILE_MAX_AGE = 24 * 60 * 60 * 1000;
 
 setInterval(() => {
+  const now = Date.now();
+  const cutoffTime = now - FILE_MAX_AGE;
+
+  // Cleanup expired/inactive rooms and passwords
+  db.run(
+    `DELETE FROM rooms WHERE created_at < ? AND name NOT IN (
+      SELECT DISTINCT room FROM messages WHERE created_at >= ?
+    )`,
+    [cutoffTime, cutoffTime],
+    (err) => {
+      if (err) console.error('Cleanup expired rooms error:', err);
+    }
+  );
+
   fs.readdir(uploadDir, (err, files) => {
     if (err) {
       console.error('Cleanup read directory error:', err);
       return;
     }
-    const now = Date.now();
     files.forEach(file => {
       const filePath = path.join(uploadDir, file);
       fs.stat(filePath, (err, stats) => {
