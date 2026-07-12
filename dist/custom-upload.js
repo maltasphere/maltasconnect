@@ -1019,6 +1019,25 @@
     subtree: true
   });
 
+  document.addEventListener('click', (e) => {
+    const leaveBtn = e.target.closest('.back-btn');
+    if (leaveBtn) {
+      const roomName = window.livekitRoom ? window.livekitRoom.name : null;
+      if (roomName) {
+        sessionStorage.removeItem('room_pwd_' + roomName);
+      } else {
+        const keysToRemove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && key.startsWith('room_pwd_')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => sessionStorage.removeItem(key));
+      }
+    }
+  });
+
   setInterval(() => {
     const inRoom = !!document.querySelector('.room-layout');
     if (inRoom) {
