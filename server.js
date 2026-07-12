@@ -95,7 +95,14 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "connect-src": ["'self'", "wss://*.livekit.cloud", "https://*.livekit.cloud"],
+      "script-src": ["'self'", "https://static.cloudflareinsights.com"],
+      "connect-src": [
+        "'self'", 
+        "wss://*.livekit.cloud", 
+        "https://*.livekit.cloud", 
+        "https://cloudflareinsights.com", 
+        "https://*.cloudflareinsights.com"
+      ],
       "img-src": ["'self'", "data:", "blob:"],
     },
   },
