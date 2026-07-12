@@ -1,0 +1,1637 @@
+/* MaltaSConnect UI/UX Theme Stylesheet & Polish Overrides */
+
+:root {
+  --accent-color: #aaff00;
+  /* Neon Lime Green */
+  --accent-glow: 0 0 10px rgba(170, 255, 0, 0.6);
+  --danger-color: #ff3333;
+  --danger-glow: 0 0 10px rgba(255, 51, 51, 0.6);
+  --bg-color: #0a0a0a;
+  --card-bg: #111115;
+  --border-color: rgba(170, 255, 0, 0.15);
+  --border-active: rgba(170, 255, 0, 0.4);
+  --text-color: #e4e4e7;
+  --text-muted: #71717a;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --transition-speed: 0.18s;
+}
+
+/* 1. CRT/Scanline and Flicker Effects */
+.site-header {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-color) !important;
+  flex-shrink: 0 !important;
+}
+
+.site-header::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
+  background-size: 100% 3px, 3px 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* CRT logo flicker animation */
+.logo {
+  animation: logo-flicker 3s infinite alternate;
+}
+
+@keyframes logo-flicker {
+
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+
+  23% {
+    opacity: 0.95;
+  }
+
+  24% {
+    opacity: 0.7;
+  }
+
+  26% {
+    opacity: 0.95;
+  }
+
+  70% {
+    opacity: 0.95;
+  }
+
+  71% {
+    opacity: 0.6;
+  }
+
+  72% {
+    opacity: 0.8;
+  }
+
+  73% {
+    opacity: 0.95;
+  }
+}
+
+/* Smoother blinking green square in header */
+.site-header .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-color);
+  animation: smooth-blink 1.5s infinite ease-in-out;
+  margin-left: 5px;
+}
+
+@keyframes smooth-blink {
+
+  0%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px var(--accent-color));
+  }
+
+  50% {
+    opacity: 0.1;
+    filter: none;
+  }
+}
+
+/* Connection Status Pill */
+.connection-status-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--accent-color);
+  background: rgba(170, 255, 0, 0.08);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.connection-status-pill .status-dot {
+  animation: status-pulse 2s infinite ease-in-out;
+}
+
+@keyframes status-pulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060608;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(170, 255, 0, 0.3);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+/* Global Transitions */
+a,
+button,
+select,
+input,
+textarea {
+  transition: all var(--transition-speed) ease !important;
+}
+
+/* Section Headers left border accent */
+.card-header {
+  border-left: 3px solid var(--accent-color) !important;
+  padding-left: 10px !important;
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+/* Destructive Outlined Leave Button */
+.back-btn {
+  background: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-color) !important;
+  transition: all var(--transition-speed) ease !important;
+}
+
+.back-btn:hover {
+  background: rgba(255, 51, 51, 0.1) !important;
+  border-color: var(--danger-color) !important;
+  color: var(--danger-color) !important;
+  box-shadow: var(--danger-glow) !important;
+}
+
+/* Active Room Title fit */
+.active-room-card .card-header {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-size: clamp(1.2rem, 4vw, 2rem) !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+/* 2. ACTIVE STREAMS PANEL */
+.streams-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.streams-badge {
+  font-size: 10px;
+  background: rgba(170, 255, 0, 0.1);
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* CRT Scanline Empty State */
+#stream-placeholder {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle, rgba(16, 24, 16, 0.4) 0%, rgba(5, 5, 5, 0.9) 100%) !important;
+  color: transparent !important;
+}
+
+#stream-placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.05));
+  background-size: 100% 4px, 6px 100%;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+#stream-placeholder::after {
+  content: 'NO ACTIVE STREAMS';
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  animation: placeholder-pulse 2s infinite ease-in-out;
+}
+
+@keyframes placeholder-pulse {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.85;
+    text-shadow: 0 0 5px rgba(170, 255, 0, 0.5);
+  }
+}
+
+/* Streams Grid and Video Tiles */
+.streams-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  grid-template-rows: auto !important;
+  grid-auto-flow: row !important;
+  gap: 12px !important;
+  padding: 12px !important;
+}
+
+.video-tile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.video-tile .stream-video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.screen-share-tile .stream-video {
+  object-fit: contain !important;
+  background: #000 !important;
+}
+
+.video-tile.active-tile {
+  border: 1px solid var(--accent-color) !important;
+  box-shadow: var(--accent-glow) !important;
+}
+
+.video-tile .video-label {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-color);
+  background: rgba(10, 10, 12, 0.75);
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  letter-spacing: 1px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.video-label-badge {
+  font-size: 8px;
+  font-weight: bold;
+  background: var(--accent-color);
+  color: #000;
+  padding: 1px 4px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+/* 3. VOICE CHANNEL PANEL */
+/* CONT / PTT Toggle Switch Header pill */
+.voice-card .card-header div[style*="display: flex"] {
+  background: rgba(10, 10, 12, 0.6) !important;
+  border: 1px solid var(--accent-color) !important;
+  border-radius: 20px !important;
+  padding: 2px !important;
+  gap: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.voice-card .card-header .control-btn {
+  border: none !important;
+  border-radius: 16px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 8px !important;
+  padding: 4px 12px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  cursor: pointer !important;
+  transition: all var(--transition-speed) ease-in-out !important;
+}
+
+.voice-card .card-header .control-btn.active {
+  background: var(--accent-color) !important;
+  color: #000000 !important;
+  font-weight: bold !important;
+  box-shadow: none !important;
+}
+
+/* Icon Buttons with labels below (MUTE, INVITE, SCREEN, CAM) */
+.controls-bar.compact {
+  display: flex !important;
+  justify-content: space-around !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  margin-bottom: 20px !important;
+}
+
+.controls-bar.compact>button,
+.controls-bar.compact>div {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.controls-bar.compact .control-btn {
+  background: rgba(170, 255, 0, 0.03) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 6px !important;
+  width: 100% !important;
+  height: 52px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 0 !important;
+  color: var(--text-muted) !important;
+}
+
+.controls-bar.compact .control-btn svg {
+  stroke-width: 2px;
+  color: var(--text-muted) !important;
+}
+
+.controls-bar.compact .control-btn .btn-label {
+  font-family: var(--font-mono);
+  font-size: 8px !important;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.controls-bar.compact .control-btn:not(.active):hover {
+  background: rgba(170, 255, 0, 0.08) !important;
+  border-color: var(--accent-color) !important;
+  color: var(--accent-color) !important;
+}
+
+.controls-bar.compact .control-btn:not(.active):hover svg,
+.controls-bar.compact .control-btn:not(.active):hover .btn-label {
+  color: var(--accent-color) !important;
+}
+
+.controls-bar.compact .control-btn.active {
+  background: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+  color: #000000 !important;
+  box-shadow: var(--accent-glow) !important;
+}
+
+.controls-bar.compact .control-btn.active svg,
+.controls-bar.compact .control-btn.active .btn-label {
+  color: #000000 !important;
+}
+
+/* SCREEN share special drop down adjust */
+.controls-bar.compact div[style*="display: flex"] {
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.controls-bar.compact div[style*="display: flex"] select {
+  width: 100% !important;
+  text-align: center !important;
+  border-radius: 4px !important;
+  font-family: var(--font-mono) !important;
+  border: 1px solid var(--border-color) !important;
+  font-size: 8px !important;
+}
+
+/* Speaking Pulsing Green Ring */
+.speaking-indicator {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background-color: var(--text-muted) !important;
+  transition: all var(--transition-speed) ease !important;
+}
+
+.speaking-indicator.active {
+  background-color: var(--accent-color) !important;
+  box-shadow: 0 0 0 0 rgba(170, 255, 0, 0.7);
+  animation: speaking-pulse 1.2s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes speaking-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(170, 255, 0, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(170, 255, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(170, 255, 0, 0);
+  }
+}
+
+/* Speaking Waveform — hidden, replaced by dot indicator */
+.speaking-waveform {
+  display: none !important;
+}
+
+/* 4. CHAT HISTORY PANEL */
+.message-list {
+  padding: 10px !important;
+}
+
+.message-item {
+  display: flex !important;
+  flex-direction: column !important;
+  margin-bottom: 12px;
+  max-width: 80%;
+  padding: 10px 14px !important;
+  border-radius: 8px;
+  animation: message-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  word-break: break-word;
+}
+
+@keyframes message-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-item.message-local {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  background: rgba(170, 255, 0, 0.08) !important;
+  border: 1px solid rgba(170, 255, 0, 0.2) !important;
+  border-radius: 8px 8px 0 8px !important;
+  align-items: flex-end !important;
+}
+
+.message-item.message-remote {
+  margin-right: auto !important;
+  margin-left: 0 !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px 8px 8px 0 !important;
+  align-items: flex-start !important;
+}
+
+.message-content-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100%;
+}
+
+.message-local .message-content-wrap {
+  align-items: flex-end !important;
+  text-align: right !important;
+}
+
+.message-remote .message-content-wrap {
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+.message-sender {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.message-local .message-sender {
+  color: var(--accent-color) !important;
+}
+
+.message-remote .message-sender {
+  color: var(--text-color) !important;
+}
+
+.message-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-color);
+}
+
+.message-time {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Reply/Quote Style Block */
+.reply-preview {
+  background: rgba(170, 255, 0, 0.03) !important;
+  border-left: 2px solid var(--accent-color) !important;
+  padding: 5px 8px !important;
+  margin-bottom: 6px !important;
+  border-radius: 0 4px 4px 0 !important;
+  font-size: 9px !important;
+  color: var(--text-muted) !important;
+  font-family: var(--font-mono) !important;
+}
+
+.reply-preview .reply-sender {
+  color: var(--accent-color) !important;
+  font-weight: bold !important;
+}
+
+.reply-preview .reply-body-text {
+  color: var(--text-color) !important;
+}
+
+/* Image Attachment Styling */
+.chat-preview-image {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  cursor: zoom-in;
+  display: block;
+  object-fit: contain;
+  background: #000;
+  margin-top: 6px;
+  transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+.chat-preview-image:hover {
+  transform: scale(1.015);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(170, 255, 0, 0.15);
+}
+
+.chat-preview-file-link {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 10, 12, 0.6);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 4px;
+  color: var(--text-color);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  margin-top: 6px;
+}
+
+.chat-preview-file-link:hover {
+  background: rgba(170, 255, 0, 0.06);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+/* Lightbox Modal */
+#chat-lightbox {
+  position: fixed;
+  z-index: 3000;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 5, 7, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#chat-lightbox.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lightbox-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border: 1px solid var(--accent-color);
+  box-shadow: var(--accent-glow);
+  border-radius: 4px;
+  animation: lightbox-zoom 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lightbox-zoom {
+  from {
+    transform: scale(0.95);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  color: var(--text-color);
+  font-size: 32px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.lightbox-close:hover {
+  color: var(--accent-color);
+}
+
+/* 5. MESSAGE INPUT BAR */
+.chat-input-wrapper {
+  display: flex !important;
+  align-items: flex-end !important;
+  background: rgba(10, 10, 12, 0.8) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  gap: 8px !important;
+  position: relative;
+}
+
+.chat-input-wrapper:focus-within {
+  border-color: var(--accent-color) !important;
+  box-shadow: inset 0 0 8px rgba(170, 255, 0, 0.05);
+}
+
+.chat-input-wrapper .chat-input {
+  background: transparent !important;
+  border: none !important;
+  padding: 8px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  color: var(--text-color) !important;
+  resize: none !important;
+  line-height: 1.4 !important;
+  max-height: 120px !important;
+}
+
+.chat-input-wrapper .chat-input:focus {
+  outline: none !important;
+}
+
+/* Attach File paperclip button */
+.upload-btn {
+  background: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-muted) !important;
+  border-radius: 4px !important;
+  height: 32px !important;
+  width: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all var(--transition-speed) ease !important;
+  margin-right: 0 !important;
+}
+
+.upload-btn:hover {
+  border-color: var(--accent-color) !important;
+  color: var(--accent-color) !important;
+  background: rgba(170, 255, 0, 0.04) !important;
+}
+
+/* Send arrow button with glow */
+.chat-send-btn {
+  border: 1px solid var(--border-color) !important;
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-radius: 4px !important;
+  height: 32px !important;
+  width: 32px !important;
+  font-family: var(--font-mono) !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.chat-send-btn:hover {
+  background: var(--accent-color) !important;
+  color: #000 !important;
+  box-shadow: var(--accent-glow) !important;
+}
+
+/* Character Counter and hints */
+.chat-input-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-color);
+  opacity: 0.4;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+  text-align: left;
+  padding-left: 2px;
+}
+
+.chat-char-counter {
+  position: absolute;
+  right: 12px;
+  bottom: -15px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.chat-char-counter.visible {
+  opacity: 1;
+}
+
+.chat-char-counter.limit-reached {
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+/* 6. MOBILE RESPONSIVE LAYOUT */
+/* 6. MOBILE RESPONSIVE LAYOUT */
+@media (max-width: 767px) {
+
+  html,
+  body,
+  #root,
+  .app-container,
+  [class*="app-container"],
+  [class*="layout-wrapper"] {
+    height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  body.in-room .site-footer {
+    display: none !important;
+  }
+
+  body.in-room .main-content {
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+
+  .room-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    margin-bottom: calc(56px + env(safe-area-inset-bottom)) !important;
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Room Title Auto-fit and Ellipsis Fallback */
+  .active-room-card .card-header,
+  .active-room-card h1,
+  .active-room-card h2,
+  .active-room-card h3,
+  .active-room-card .room-name,
+  .active-room-card .room-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: clamp(1.2rem, 4vw, 2rem) !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  /* Each panel fills the screen cleanly on its active tab */
+  .active-room-card,
+  .voice-card,
+  .streams-card {
+    height: 100% !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding-bottom: 20px !important;
+  }
+
+  .chat-card {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  .active-room-card .back-btn {
+    display: inline-block !important;
+    margin-top: 16px !important;
+    width: auto !important;
+    visibility: visible !important;
+  }
+
+  /* Enforce min-touch-targets (44px) */
+  .control-btn,
+  .chat-send-btn,
+  .upload-btn,
+  .back-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  .voice-card .card-header .control-btn {
+    min-height: 30px !important;
+    min-width: 50px !important;
+  }
+
+  /* 390px Viewport Card Ordering */
+  .active-room-card {
+    order: 1 !important;
+  }
+
+  .voice-card {
+    order: 2 !important;
+  }
+
+  .streams-card {
+    order: 3 !important;
+  }
+
+  .chat-card {
+    order: 4 !important;
+  }
+
+  /* Chat history container height adjustment */
+  .chat-card .card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    height: 100% !important;
+    padding: 0 !important;
+  }
+
+  .message-list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+  }
+
+  /* Chat Input at the bottom of CHAT card */
+  .chat-input-wrapper {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    z-index: 10 !important;
+    background: #0a0a0a !important;
+    padding: 12px !important;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.7) !important;
+    border-radius: 0 !important;
+    border: none !important;
+    flex-shrink: 0 !important;
+  }
+
+  .chat-input-hint {
+    display: block !important;
+    font-size: 11px !important;
+    opacity: 0.4 !important;
+  }
+
+  /* Bottom Navigation Bar */
+  .mobile-nav-bar {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 56px !important;
+    background: #0a0a0a !important;
+    border-top: 1px solid rgba(170, 255, 0, 0.2) !important;
+    z-index: 100 !important;
+    justify-content: space-around !important;
+    align-items: center;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  .nav-tab {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 8px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    flex: 1;
+    height: 100%;
+    justify-content: center;
+    transition: all var(--transition-speed) ease;
+    border-top: 2px solid transparent !important;
+    border-bottom: none !important;
+  }
+
+  .nav-tab svg {
+    color: rgba(255, 255, 255, 0.3) !important;
+    transition: transform var(--transition-speed) ease;
+  }
+
+  .nav-tab.active {
+    color: var(--accent-color) !important;
+    border-top-color: var(--accent-color) !important;
+    border-bottom: none !important;
+  }
+
+  .nav-tab.active svg {
+    color: var(--accent-color) !important;
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 3px var(--accent-color));
+  }
+
+  /* Control visibility of cards based on active tab selection */
+  .active-room-card {
+    display: none !important;
+  }
+
+  /* Always hide active room card on mobile */
+
+  @keyframes tab-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  body[data-active-tab="voice"] .voice-card {
+    display: flex !important;
+    animation: tab-fade-in 150ms ease forwards !important;
+  }
+
+  body[data-active-tab="voice"] .streams-card,
+  body[data-active-tab="voice"] .chat-card {
+    display: none !important;
+  }
+
+  body[data-active-tab="streams"] .streams-card {
+    display: flex !important;
+    animation: tab-fade-in 150ms ease forwards !important;
+  }
+
+  body[data-active-tab="streams"] .voice-card,
+  body[data-active-tab="streams"] .chat-card {
+    display: none !important;
+  }
+
+  body[data-active-tab="chat"] .chat-card {
+    display: flex !important;
+    animation: tab-fade-in 150ms ease forwards !important;
+  }
+
+  body[data-active-tab="chat"] .voice-card,
+  body[data-active-tab="chat"] .streams-card {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-nav-bar {
+    display: none !important;
+  }
+}
+
+/* Custom Speaking/Muted Indicators */
+.status-dot {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  margin-right: 8px !important;
+  vertical-align: middle !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.status-dot.idle {
+  background-color: #aaff00 !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+.status-dot.speaking {
+  background-color: #aaff00 !important;
+  animation: pulse 0.8s ease-in-out infinite !important;
+  box-shadow: 0 0 0 0 rgba(170, 255, 0, 0.6) !important;
+}
+
+.status-dot.muted {
+  background-color: #ff4444 !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(170, 255, 0, 0.6);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(170, 255, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(170, 255, 0, 0);
+  }
+}
+
+/* Header Status Container & Pills */
+.header-status-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-left: auto !important;
+}
+
+.status-pill {
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--border-color) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--text-muted) !important;
+}
+
+.status-pill.room-pill {
+  color: var(--text-color) !important;
+  font-weight: bold !important;
+}
+
+.status-pill.muted-pill {
+  background: rgba(255, 68, 68, 0.05) !important;
+  border-color: rgba(255, 68, 68, 0.2) !important;
+  color: #ff4444 !important;
+}
+
+.status-pill.unmuted-pill {
+  background: rgba(170, 255, 0, 0.05) !important;
+  border-color: rgba(170, 255, 0, 0.2) !important;
+  color: var(--accent-color) !important;
+}
+
+.status-pill.conn-pill.connected {
+  background: rgba(170, 255, 0, 0.05) !important;
+  border-color: rgba(170, 255, 0, 0.2) !important;
+  color: var(--accent-color) !important;
+}
+
+.status-pill.conn-pill.disconnected {
+  background: rgba(255, 68, 68, 0.05) !important;
+  border-color: rgba(255, 68, 68, 0.2) !important;
+  color: #ff4444 !important;
+}
+
+.status-pill.latency-pill {
+  color: var(--text-muted) !important;
+}
+
+.status-pill .status-dot {
+  font-size: 8px !important;
+}
+
+/* Hide default connection status pill */
+.connection-status-pill {
+  display: none !important;
+}
+
+/* Voice Tab Hints */
+.voice-hint-text {
+  font-family: var(--font-mono) !important;
+  font-size: 8px !important;
+  color: var(--text-muted) !important;
+  opacity: 0.5 !important;
+  margin-top: 4px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  display: none !important;
+}
+
+/* Navigation Tab badges */
+.nav-tab {
+  position: relative !important;
+}
+
+.nav-badge {
+  position: absolute !important;
+  top: 4px !important;
+  right: 12px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 8px !important;
+  font-weight: bold !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  padding: 0 4px !important;
+  border-radius: 7px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #000000 !important;
+  z-index: 10 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.nav-badge.chat-badge {
+  background: var(--accent-color) !important;
+}
+
+.nav-badge.streams-badge-red {
+  background: #ff4444 !important;
+  color: #ffffff !important;
+}
+
+/* 6. MOBILE RESPONSIVE MEDIA OVERRIDES */
+@media (max-width: 767px) {
+
+  /* Mobile Header clean layout */
+  .site-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 10px 16px !important;
+  }
+
+  .header-status-container {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 4px !important;
+    padding-top: 4px !important;
+  }
+
+  .status-pill {
+    font-size: 8px !important;
+    padding: 2px 6px !important;
+    white-space: nowrap !important;
+  }
+
+  .status-pill .status-dot {
+    font-size: 6px !important;
+  }
+
+  /* Padding and Font size overrides */
+  .chat-card,
+  .voice-card,
+  .streams-card {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .chat-card .card-header,
+  .voice-card .card-header,
+  .streams-card .card-header {
+    font-size: 11px !important;
+  }
+
+  .message-text {
+    font-size: 13px !important;
+  }
+
+  .message-time {
+    font-size: 10px !important;
+  }
+
+  /* Chat message bubble styling is defined globally */
+
+  /* Chat custom scrollbar */
+  .chat-card .message-list::-webkit-scrollbar {
+    width: 3px !important;
+  }
+
+  .chat-card .message-list::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .chat-card .message-list::-webkit-scrollbar-thumb {
+    background: #aaff00 !important;
+    border-radius: 1.5px !important;
+  }
+
+  /* Room Tab Styling & stats centering */
+  .active-room-card {
+    display: none !important;
+    /* Always hide active room card on mobile */
+  }
+
+  /* Voice Tab Styling & Buttons Row */
+  .voice-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 100% !important;
+    padding: 20px 16px !important;
+  }
+
+  .voice-card .card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 20px !important;
+  }
+
+  .voice-card .controls-bar.compact {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 340px !important;
+    margin: 20px auto !important;
+    justify-content: center !important;
+    align-items: start !important;
+  }
+
+  .voice-card .controls-bar.compact>button,
+  .voice-card .controls-bar.compact>div {
+    flex: none !important;
+  }
+
+  .voice-card .controls-bar.compact div[style*="display: flex"],
+  .voice-card .controls-bar.compact div:has(> select) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 6px !important;
+    height: auto !important;
+  }
+
+  .voice-card .controls-bar.compact select,
+  .voice-card .controls-bar.compact div[style*="display: flex"] select {
+    width: 100% !important;
+    max-width: 90px !important;
+    height: 24px !important;
+    background: #0a0a0a !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 4px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    cursor: pointer !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23aaff00' height='10' viewBox='0 0 24 24' width='10' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
+    background-repeat: no-repeat !important;
+    background-position: calc(100% - 6px) center !important;
+    padding-right: 16px !important;
+  }
+
+  .voice-card .controls-bar.compact .control-btn {
+    width: 100% !important;
+    height: 80px !important;
+    min-width: unset !important;
+    min-height: unset !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 0 !important;
+  }
+
+  .voice-card .controls-bar.compact .control-btn svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .voice-card .controls-bar.compact .control-btn .btn-label {
+    font-size: 10px !important;
+    font-family: var(--font-mono) !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Single pill toggle for CONT/PTT */
+  .voice-card .card-header > div:has(> .control-btn) {
+    display: flex !important;
+    border: 1px solid var(--accent-color) !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    background: transparent !important;
+  }
+
+  .voice-card .card-header .control-btn {
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    min-width: 45px !important;
+    font-size: 9px !important;
+    font-family: var(--font-mono) !important;
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .voice-card .card-header .control-btn.active,
+  .voice-card .card-header .control-btn[class*="active"] {
+    background: var(--accent-color) !important;
+    color: #000000 !important;
+  }
+
+  .voice-hint-text {
+    display: none !important;
+    /* Removed, too cluttered */
+  }
+
+  /* Streams Tab Matrix scanline aesthetic */
+  .streams-card {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  .streams-card #streams-container {
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    position: relative !important;
+  }
+
+  .streams-card .streams-grid {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    overflow-y: auto !important;
+  }
+
+  .streams-card .streams-grid:has(> :only-child) {
+    justify-content: center !important;
+  }
+
+  .streams-card #stream-placeholder {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex;
+    align-items: center !important;
+    justify-content: center !important;
+    background: radial-gradient(circle at center, rgba(170, 255, 0, 0.02) 0%, transparent 70%),
+      linear-gradient(rgba(170, 255, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(170, 255, 0, 0.05) 1px, transparent 1px) !important;
+    background-size: 100% 100%, 20px 20px, 20px 20px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .streams-card #stream-placeholder::before {
+    content: "" !important;
+    position: absolute !important;
+    top: -100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 100% !important;
+    background: linear-gradient(to bottom, transparent, rgba(170, 255, 0, 0.05), transparent) !important;
+    animation: scanline-move 8s linear infinite !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+  }
+
+  .streams-card #stream-placeholder::after {
+    content: "NO ACTIVE STREAMS" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 11px !important;
+    color: var(--accent-color) !important;
+    letter-spacing: 2px !important;
+    animation: placeholder-pulse 2s infinite ease-in-out !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+  }
+
+  @keyframes scanline-move {
+    0% {
+      top: -100%;
+    }
+
+    100% {
+      top: 100%;
+    }
+  }
+
+  /* Chat Tab input styling */
+  .chat-input-wrapper {
+    padding: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    background: #0a0a0a !important;
+  }
+
+  .chat-send-btn {
+    background: var(--accent-color) !important;
+    color: #000000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    box-shadow: var(--accent-glow) !important;
+  }
+
+  .chat-send-btn svg {
+    color: #000000 !important;
+    stroke: #000000 !important;
+  }
+
+  .chat-input {
+    flex: 1 !important;
+    margin: 0 !important;
+  }
+
+  .chat-preview-image {
+    max-height: 150px !important;
+    border-radius: 4px !important;
+  }
+}
+
+/* Disable Animations when prefers-reduced-motion is true */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  ::before,
+  ::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/* ===== ADDITIONAL FIXES ===== */
+
+/* Force hide waveform bars everywhere */
+.speaking-waveform,
+.waveform-bar,
+[class*="waveform"] {
+  display: none !important;
+}
+
+/* Mobile Voice Tab — better centered layout */
+@media (max-width: 767px) {
+  .voice-card {
+    justify-content: flex-start !important;
+    padding-top: 32px !important;
+  }
+
+  .voice-card .card-header {
+    width: 100% !important;
+    max-width: 340px !important;
+    margin: 0 auto 16px auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* 3 equal columns for MUTE/SCREEN/CAM */
+  .voice-card .controls-bar.compact {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    width: 100% !important;
+    max-width: 340px !important;
+  }
+
+  /* Screen share dropdown wraps under SCREEN button */
+  .voice-card .controls-bar.compact>div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  /* Participant list in voice tab */
+  .participant-list {
+    width: 100% !important;
+    max-width: 340px !important;
+    margin: 0 auto !important;
+  }
+
+  .participant-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 12px !important;
+    color: var(--accent-color) !important;
+  }
+
+  /* Chat: input always visible, messages fill remaining space */
+  .chat-card {
+    height: 100% !important;
+    flex: 1 1 0% !important;
+  }
+
+  .chat-card .message-list {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 12px 16px !important;
+  }
+
+  /* Make sure room name in header doesn't wrap */
+  .site-header .logo,
+  .site-header h1,
+  .site-header .logo-text {
+    white-space: nowrap !important;
+    font-size: 13px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 160px !important;
+  }
+}

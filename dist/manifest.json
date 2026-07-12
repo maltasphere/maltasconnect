@@ -1,0 +1,30 @@
+{
+  "short_name": "MaltasConnect",
+  "name": "MaltaSConnect Voice & Chat",
+  "description": "A brutalist, technical, and ultra-minimalist voice application interface.",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "1000x1000",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f0f11",
+  "theme_color": "#0f0f11",
+  "display": "standalone",
+  "orientation": "portrait"
+}
