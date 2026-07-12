@@ -1737,3 +1737,28 @@ textarea {
   outline: none;
   box-shadow: var(--accent-glow);
 }
+
+/* Layout height corrections to prevent header crop at 100% zoom */
+@media (min-width: 1025px) {
+  .room-layout {
+    height: calc(100vh - 140px) !important;
+    grid-template-rows: 1.1fr 1fr !important;
+    overflow: hidden !important;
+  }
+  
+  .room-layout .card {
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .room-layout .card-body {
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .streams-grid {
+    flex: 1 !important;
+    height: auto !important;
+  }
+}

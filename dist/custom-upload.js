@@ -327,13 +327,13 @@
     }
 
     const room = window.livekitRoom;
-    const roomName = room ? escapeHTML(room.name.toUpperCase()) : 'NO ROOM';
-
-    const isMuted = room && room.localParticipant ? isParticipantMuted(room.localParticipant) : false;
-    const muteText = isMuted ? 'MUTED' : 'UNMUTED';
-    const muteClass = isMuted ? 'status-pill muted-pill' : 'status-pill unmuted-pill';
-
     const isConnected = room && room.state === 'connected';
+    const roomName = isConnected ? escapeHTML(room.name.toUpperCase()) : 'NO ROOM';
+
+    const isMuted = isConnected && room.localParticipant ? isParticipantMuted(room.localParticipant) : false;
+    const muteText = isConnected ? (isMuted ? 'MUTED' : 'UNMUTED') : 'MUTED';
+    const muteClass = isConnected ? (isMuted ? 'status-pill muted-pill' : 'status-pill unmuted-pill') : 'status-pill muted-pill';
+
     const connState = isConnected ? 'CONNECTED' : 'DISCONNECTED';
     const connClass = isConnected ? 'status-pill conn-pill connected' : 'status-pill conn-pill disconnected';
 
@@ -931,6 +931,7 @@
         const nav = document.querySelector('.mobile-nav-bar');
         if (nav) nav.remove();
         injectPasswordInput();
+        updateHeaderStatus();
 
         const lobbyForm = document.querySelector('.lobby-form');
         if (lobbyForm && !lobbyForm.hasAttribute('data-pwd-hook')) {
