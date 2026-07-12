@@ -4,17 +4,25 @@
   window.fetch = async function(resource, init) {
     let url = typeof resource === 'string' ? resource : (resource instanceof URL ? resource.toString() : (resource && resource.url));
     if (url && url.includes('/api/token')) {
-      const pwdInput = document.querySelector('#password-input');
-      if (pwdInput && pwdInput.value) {
-        const separator = url.includes('?') ? '&' : '?';
-        url += `${separator}password=${encodeURIComponent(pwdInput.value)}`;
-        if (typeof resource === 'string') {
-          resource = url;
-        } else if (resource instanceof URL) {
-          resource = new URL(url);
-        } else if (resource && typeof resource === 'object') {
-          resource.url = url;
+      try {
+        const urlObj = new URL(url, window.location.origin);
+        const room = urlObj.searchParams.get('room');
+        if (room) {
+          const password = sessionStorage.getItem('room_pwd_' + room);
+          if (password) {
+            urlObj.searchParams.set('password', password);
+            url = urlObj.toString();
+            if (typeof resource === 'string') {
+              resource = url;
+            } else if (resource instanceof URL) {
+              resource = urlObj;
+            } else if (resource && typeof resource === 'object') {
+              resource.url = url;
+            }
+          }
         }
+      } catch (e) {
+        console.error('Error intercepting token password:', e);
       }
     }
     return originalFetch(resource, init);

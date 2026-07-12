@@ -901,6 +901,27 @@
         const nav = document.querySelector('.mobile-nav-bar');
         if (nav) nav.remove();
         injectPasswordInput();
+
+        const lobbyForm = document.querySelector('.lobby-form');
+        if (lobbyForm && !lobbyForm.hasAttribute('data-pwd-hook')) {
+          lobbyForm.setAttribute('data-pwd-hook', 'true');
+          lobbyForm.addEventListener('submit', () => {
+            const roomInput = lobbyForm.querySelector('#room-input');
+            const pwdInput = lobbyForm.querySelector('#password-input');
+            if (roomInput && pwdInput) {
+              let cleanRoom = roomInput.value.trim();
+              try {
+                if (cleanRoom.startsWith('http')) {
+                  const pathPart = new URL(cleanRoom).pathname.split('/').filter(Boolean).pop();
+                  if (pathPart) cleanRoom = pathPart;
+                }
+              } catch (e) {}
+              if (cleanRoom) {
+                sessionStorage.setItem('room_pwd_' + cleanRoom, pwdInput.value || '');
+              }
+            }
+          });
+        }
       }
       processMessages();
     } catch (e) {
