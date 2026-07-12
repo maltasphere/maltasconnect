@@ -17,6 +17,87 @@
       .replace(/'/g, '&#039;');
   }
 
+  // Web Audio Context for PTT Synthesized sound effects
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function playPTTOnSound() {
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.08);
+      
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.12);
+    } catch (e) {
+      console.error('Failed to play PTT ON sound:', e);
+    }
+  }
+
+  function playPTTOffSound() {
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
+      
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {
+      console.error('Failed to play PTT OFF sound:', e);
+    }
+  }
+
+  // Simple and secure markdown parser
+  function parseMarkdown(text) {
+    if (!text) return '';
+    let escaped = escapeHTML(text);
+    
+    // Code blocks: ```code```
+    escaped = escaped.replace(/```([\s\S]+?)```/g, '<pre class="chat-code-block"><code>$1</code></pre>');
+    
+    // Inline code: `code`
+    escaped = escaped.replace(/`([^`]+)`/g, '<code class="chat-inline-code">$1</code>');
+    
+    // Bold: **text**
+    escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Italic: *text*
+    escaped = escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    return escaped;
+  }
+
   // Open Image Lightbox
   function openLightbox(src) {
     let lightbox = document.getElementById('chat-lightbox');
@@ -43,18 +124,15 @@
   // Helper: is participant's microphone muted?
   function isParticipantMuted(participant) {
     if (!participant) return false;
-    // LiveKit 2.x: isMicrophoneEnabled is the correct API
     if (typeof participant.isMicrophoneEnabled === 'boolean') {
       return !participant.isMicrophoneEnabled;
     }
-    // Fallback: check audioTracks
     if (participant.audioTrackPublications) {
       for (const [, pub] of participant.audioTrackPublications) {
         if (pub.isMuted) return true;
       }
       return false;
     }
-    // Legacy fallback
     if (typeof participant.isMuted === 'boolean') return participant.isMuted;
     return false;
   }
@@ -72,20 +150,21 @@
       updateDot(local.identity, speaking, isParticipantMuted(local));
     });
 
-    // Local participant mute/unmute — trackMuted fires on the publication
+    // Local participant mute/unmute
     local.on('trackMuted', (pub) => {
       if (pub && pub.kind !== 'audio') return;
       updateDot(local.identity, false, true);
       updateHeaderStatus();
+      playPTTOffSound();
     });
 
     local.on('trackUnmuted', (pub) => {
       if (pub && pub.kind !== 'audio') return;
       updateDot(local.identity, local.isSpeaking || false, false);
       updateHeaderStatus();
+      playPTTOnSound();
     });
 
-    // Also listen to localParticipant microphone toggle (LiveKit 2.x)
     local.on('localTrackPublished', () => {
       updateDot(local.identity, local.isSpeaking || false, isParticipantMuted(local));
       updateHeaderStatus();
@@ -108,7 +187,6 @@
 
     room.on('participantConnected', attachRemote);
 
-    // Already connected remote participants
     const remotes = room.remoteParticipants || room.participants;
     if (remotes) {
       if (typeof remotes.forEach === 'function') {
@@ -123,12 +201,36 @@
     const dot = document.querySelector(`[data-identity="${identity}"] .status-dot`);
     if (!dot) return;
     dot.className = 'status-dot';
+    
     if (isMuted) {
       dot.classList.add('muted');
     } else if (isSpeaking) {
       dot.classList.add('speaking');
     } else {
       dot.classList.add('idle');
+    }
+
+    // Highlight active speaker item in user list
+    const userItem = document.querySelector(`.participant-item[data-identity="${identity}"]`);
+    if (userItem) {
+      if (isSpeaking && !isMuted) {
+        userItem.classList.add('speaking-active');
+      } else {
+        userItem.classList.remove('speaking-active');
+      }
+    }
+
+    // Highlight active speaker tile in video stream grid
+    const videoEl = document.querySelector(`.stream-video[data-participant="${identity}"]`);
+    if (videoEl) {
+      const tile = videoEl.closest('.video-tile');
+      if (tile) {
+        if (isSpeaking && !isMuted) {
+          tile.classList.add('speaking-active');
+        } else {
+          tile.classList.remove('speaking-active');
+        }
+      }
     }
   }
 
@@ -141,7 +243,6 @@
 
     const items = document.querySelectorAll('.participant-item');
     items.forEach(item => {
-      // Hide all default indicators including waveform bars
       item.querySelectorAll('.speaking-indicator, .muted-indicator, .speaking-waveform').forEach(el => {
         el.style.display = 'none';
       });
@@ -208,17 +309,14 @@
 
     let latencyHtml = '';
     if (isConnected) {
-      // Try to get real RTT from LiveKit engine
       let rtt = null;
       try {
         rtt = room.engine && room.engine.client && room.engine.client.rtt;
         if (!rtt) {
-          // Try remote participants signal RTT
           const remotes = room.remoteParticipants || room.participants;
           if (remotes) {
             remotes.forEach(p => {
               if (!rtt && p.connectionQuality) {
-                // connectionQuality: excellent/good/poor - approximate ms
                 const q = p.connectionQuality;
                 if (q === 'excellent') rtt = 20;
                 else if (q === 'good') rtt = 60;
@@ -381,7 +479,6 @@
       }
       wrapper.appendChild(label);
 
-      // Add click handler to toggle active/selected neon border
       wrapper.addEventListener('click', () => {
         container.querySelectorAll('.video-tile').forEach(tile => {
           if (tile !== wrapper) {
@@ -415,7 +512,6 @@
     }
     badge.textContent = `STREAMS: ${videos.length}`;
 
-    // Fix mobile stream layout by toggling placeholder visibility with inline important override
     const placeholder = document.getElementById('stream-placeholder');
     if (placeholder) {
       if (videos.length > 0) {
@@ -428,7 +524,6 @@
 
   // Character Counter & Hints
   function initInputEnhancements(form) {
-    // Clean up any duplicates first to prevent infinite repeating loops
     const existingHints = form.parentNode.querySelectorAll('.chat-input-hint');
     existingHints.forEach(h => h.remove());
     
@@ -482,7 +577,7 @@
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.style.display = 'none';
-    fileInput.accept = 'image/*,application/pdf,text/plain,text/markdown,application/zip';
+    fileInput.accept = 'image/*,application/pdf,text/plain,text/markdown,application/zip,audio/*,video/*';
     document.body.appendChild(fileInput);
 
     uploadBtn.addEventListener('click', () => {
@@ -520,7 +615,6 @@
             tracker.setValue('');
           }
           chatInput.dispatchEvent(new Event('input', { bubbles: true }));
-
           form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         }
       } catch (err) {
@@ -531,6 +625,31 @@
         fileInput.value = '';
       }
     });
+  }
+
+  // Dynamic Password Input injection on Lobby Screen
+  function injectPasswordInput() {
+    const form = document.querySelector('.lobby-form');
+    if (!form || form.querySelector('#password-input')) return;
+
+    const roomInputWrapper = form.querySelector('.input-wrapper:nth-child(2)');
+    if (!roomInputWrapper) return;
+
+    const passwordWrapper = document.createElement('div');
+    passwordWrapper.className = 'input-wrapper password-input-wrapper';
+    passwordWrapper.style.marginTop = '15px';
+    passwordWrapper.style.marginBottom = '15px';
+
+    const passwordInput = document.createElement('input');
+    passwordInput.type = 'password';
+    passwordInput.id = 'password-input';
+    passwordInput.placeholder = 'ROOM PASSWORD (OPTIONAL)';
+    passwordInput.style.width = '100%';
+    
+    passwordWrapper.appendChild(passwordInput);
+
+    // Insert it cleanly before the room input wrapper
+    form.insertBefore(passwordWrapper, roomInputWrapper);
   }
 
   // Process and style Chat Messages (Local/Remote borders, Lightbox, Clean attachments)
@@ -547,6 +666,8 @@
         const cleanName = filename.replace(/-[0-9]+-[0-9]+(\.[a-z0-9]+)$/i, '$1');
         const ext = filename.split('.').pop().toLowerCase();
         const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
+        const isAudio = ['mp3', 'wav', 'ogg', 'aac'].includes(ext);
+        const isVideo = ['mp4', 'webm', 'ogg'].includes(ext);
 
         const container = document.createElement('div');
         container.className = 'file-preview-container';
@@ -562,6 +683,18 @@
             openLightbox(fileUrl);
           });
           container.appendChild(img);
+        } else if (isAudio) {
+          const audio = document.createElement('audio');
+          audio.src = fileUrl;
+          audio.controls = true;
+          audio.className = 'chat-preview-audio';
+          container.appendChild(audio);
+        } else if (isVideo) {
+          const video = document.createElement('video');
+          video.src = fileUrl;
+          video.controls = true;
+          video.className = 'chat-preview-video';
+          container.appendChild(video);
         } else {
           const link = document.createElement('a');
           link.href = fileUrl;
@@ -606,7 +739,6 @@
     messages.forEach(msg => {
       let isLocal = msg.classList.contains('message-local');
 
-      // Re-verify remote messages if livekitRoom is now available
       if (msg.classList.contains('styled-msg') && !isLocal) {
         const senderSpan = msg.querySelector('.message-sender');
         if (senderSpan) {
@@ -653,13 +785,12 @@
       }
     });
 
-    // 3. Process and clean reply/quote blocks
+    // 3. Process and clean reply/quote blocks safely
     const replyPreviews = document.querySelectorAll('.reply-preview:not(.processed)');
     replyPreviews.forEach(el => {
       el.classList.add('processed');
 
       const rawText = el.textContent || '';
-      // Format is usually "@sender: text"
       const match = rawText.match(/^@([^:]+):\s*(.*)$/);
       if (match) {
         const sender = match[1];
@@ -668,7 +799,6 @@
         let fileUrl = '';
         let hasFileAttachment = false;
         if (replyText.includes('UPLOADED_FILE:')) {
-          // Look for original message in history to get preview file URL if any
           const cleanTextToFind = replyText.replace('UPLOADED_FILE: ', '').replace('...', '').trim();
           const originalMsg = Array.from(document.querySelectorAll('.message-text')).find(orig => {
             const txt = orig.textContent || '';
@@ -688,7 +818,6 @@
           }
         }
 
-        // Truncate long quoted text after 40 chars
         if (replyText.length > 40) {
           replyText = replyText.substring(0, 40) + '...';
         }
@@ -732,11 +861,20 @@
         }
       }
     });
+
+    // 4. Securely render markdown messages
+    const plainMessageTexts = document.querySelectorAll('.message-text:not(.processed):not(.md-processed)');
+    plainMessageTexts.forEach(el => {
+      const text = el.textContent || '';
+      if (!text.startsWith('UPLOADED_FILE: ')) {
+        el.classList.add('md-processed');
+        el.innerHTML = parseMarkdown(text);
+      }
+    });
   }
 
   // Observe DOM modifications to inject hooks safely
   const observer = new MutationObserver(() => {
-    // Temporarily disconnect to avoid infinite self-trigger loops while modifying DOM
     observer.disconnect();
 
     try {
@@ -762,12 +900,12 @@
         document.body.removeAttribute('data-active-tab');
         const nav = document.querySelector('.mobile-nav-bar');
         if (nav) nav.remove();
+        injectPasswordInput();
       }
       processMessages();
     } catch (e) {
       console.error("Error in MaltasConnect observer callback:", e);
     } finally {
-      // Reconnect observer
       observer.observe(document.body, {
         childList: true,
         subtree: true
@@ -775,13 +913,11 @@
     }
   });
 
-  // Start observing
   observer.observe(document.body, {
     childList: true,
     subtree: true
   });
 
-  // Periodically update header status (for latency and connection state updates every 5s)
   setInterval(() => {
     const inRoom = !!document.querySelector('.room-layout');
     if (inRoom) {

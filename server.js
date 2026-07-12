@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import sqlite3 from 'sqlite3';
 import multer from 'multer';
 import fs from 'fs';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +33,14 @@ db.serialize(() => {
     )
   `);
   db.run(`CREATE INDEX IF NOT EXISTS idx_messages_room ON messages(room)`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS rooms (
+      name TEXT PRIMARY KEY,
+      password_hash TEXT,
+      salt TEXT,
+      created_at INTEGER NOT NULL
+    )
+  `);
 });
 
 // Configure File Upload directory
@@ -61,7 +70,9 @@ const ALLOWED_MIME_TYPES = [
   'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp',
   'application/pdf',
   'text/plain', 'text/markdown',
-  'application/zip', 'application/x-zip-compressed'
+  'application/zip', 'application/x-zip-compressed',
+  'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/aac',
+  'video/mp4', 'video/webm', 'video/ogg'
 ];
 
 // Safe Extensions corresponding to allowed MIME types
@@ -69,7 +80,9 @@ const ALLOWED_EXTENSIONS = [
   '.png', '.jpeg', '.jpg', '.gif', '.webp',
   '.pdf',
   '.txt', '.md',
-  '.zip'
+  '.zip',
+  '.mp3', '.wav', '.ogg', '.aac',
+  '.mp4', '.webm'
 ];
 
 const upload = multer({
@@ -130,9 +143,14 @@ app.use((req, res, next) => {
 
 const MAX_ROOMS = 50;
 
+// Hashing function for room passwords
+function hashPassword(password, salt) {
+  return crypto.scryptSync(password, salt, 64).toString('hex');
+}
+
 // API Routes
 app.get('/api/token', async (req, res) => {
-  const { room, identity } = req.query;
+  const { room, identity, password } = req.query;
 
   // Basic Input Validation
   if (!room || !identity || room.length > 50 || identity.length > 50) {
@@ -146,19 +164,55 @@ app.get('/api/token', async (req, res) => {
     return res.status(500).json({ error: 'LiveKit API key or secret not configured' });
   }
 
-  try {
-    const at = new AccessToken(apiKey, apiSecret, {
-      identity: identity,
-    });
-    
-    at.addGrant({ roomJoin: true, room: room, canPublish: true, canSubscribe: true });
+  const generateToken = async () => {
+    try {
+      const at = new AccessToken(apiKey, apiSecret, {
+        identity: identity,
+      });
+      at.addGrant({ roomJoin: true, room: room, canPublish: true, canSubscribe: true });
+      const token = await at.toJwt();
+      res.json({ token });
+    } catch (error) {
+      console.error('Error generating token:', error);
+      res.status(500).json({ error: 'Failed to generate token' });
+    }
+  };
 
-    const token = await at.toJwt();
-    res.json({ token });
-  } catch (error) {
-    console.error('Error generating token:', error);
-    res.status(500).json({ error: 'Failed to generate token' });
-  }
+  db.get(`SELECT password_hash, salt FROM rooms WHERE name = ?`, [room], (err, dbRoom) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (dbRoom) {
+      if (dbRoom.password_hash) {
+        if (!password) {
+          return res.status(401).json({ error: 'Password required for this room.' });
+        }
+        const computedHash = hashPassword(password, dbRoom.salt);
+        if (computedHash !== dbRoom.password_hash) {
+          return res.status(401).json({ error: 'Incorrect room password.' });
+        }
+      }
+      generateToken();
+    } else {
+      const salt = crypto.randomBytes(16).toString('hex');
+      const passwordHash = password ? hashPassword(password, salt) : null;
+      const actualSalt = password ? salt : null;
+
+      db.run(
+        `INSERT INTO rooms (name, password_hash, salt, created_at) VALUES (?, ?, ?, ?)`,
+        [room, passwordHash, actualSalt, Date.now()],
+        (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to register room' });
+          }
+          generateToken();
+        }
+      );
+    }
+  });
 });
 
 app.get('/api/messages', (req, res) => {
@@ -291,6 +345,38 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
+
+// Expired uploads periodic cleanup (Every 1 hour, delete files older than 24 hours)
+const CLEANUP_INTERVAL = 60 * 60 * 1000;
+const FILE_MAX_AGE = 24 * 60 * 60 * 1000;
+
+setInterval(() => {
+  fs.readdir(uploadDir, (err, files) => {
+    if (err) {
+      console.error('Cleanup read directory error:', err);
+      return;
+    }
+    const now = Date.now();
+    files.forEach(file => {
+      const filePath = path.join(uploadDir, file);
+      fs.stat(filePath, (err, stats) => {
+        if (err) {
+          console.error(`Cleanup stat file ${file} error:`, err);
+          return;
+        }
+        if (now - stats.mtimeMs > FILE_MAX_AGE) {
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.error(`Cleanup delete file ${file} error:`, err);
+            } else {
+              console.log(`Cleaned up expired uploaded file: ${file}`);
+            }
+          });
+        }
+      });
+    });
+  });
+}, CLEANUP_INTERVAL);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

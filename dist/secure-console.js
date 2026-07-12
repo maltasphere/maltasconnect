@@ -1,4 +1,25 @@
 (function() {
+  // Intercept fetch calls for room passwords
+  const originalFetch = window.fetch;
+  window.fetch = async function(resource, init) {
+    let url = typeof resource === 'string' ? resource : (resource instanceof URL ? resource.toString() : (resource && resource.url));
+    if (url && url.includes('/api/token')) {
+      const pwdInput = document.querySelector('#password-input');
+      if (pwdInput && pwdInput.value) {
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}password=${encodeURIComponent(pwdInput.value)}`;
+        if (typeof resource === 'string') {
+          resource = url;
+        } else if (resource instanceof URL) {
+          resource = new URL(url);
+        } else if (resource && typeof resource === 'object') {
+          resource.url = url;
+        }
+      }
+    }
+    return originalFetch(resource, init);
+  };
+
   const originalLog = console.log;
   const originalWarn = console.warn;
   const originalInfo = console.info;
