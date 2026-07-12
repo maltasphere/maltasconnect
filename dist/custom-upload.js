@@ -326,8 +326,9 @@
       header.appendChild(statusContainer);
     }
 
+    const inRoom = !!document.querySelector('.room-layout');
     const room = window.livekitRoom;
-    const isConnected = room && room.state === 'connected';
+    const isConnected = inRoom && room && room.state === 'connected';
     const roomName = isConnected ? escapeHTML(room.name.toUpperCase()) : 'NO ROOM';
 
     const isMuted = isConnected && room.localParticipant ? isParticipantMuted(room.localParticipant) : false;
