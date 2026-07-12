@@ -217,57 +217,94 @@ app.get('/api/token', async (req, res) => {
 
 app.get('/api/messages', (req, res) => {
   const { room } = req.query;
+  const password = req.headers['x-room-password'] || req.query.password;
+
   if (!room || room.length > 50) {
     return res.status(400).json({ error: 'Invalid room name' });
   }
 
-  db.all(
-    `SELECT id, sender, text, replyTo, time FROM messages WHERE room = ? ORDER BY created_at DESC LIMIT 100`,
-    [room],
-    (err, rows) => {
-      if (err) {
-        console.error('Error reading messages:', err);
-        return res.status(500).json({ error: 'Failed to retrieve messages' });
-      }
-      const messages = rows.reverse().map(row => ({
-        id: row.id,
-        sender: row.sender,
-        text: row.text,
-        replyTo: row.replyTo ? JSON.parse(row.replyTo) : null,
-        time: row.time
-      }));
-      res.json(messages);
+  db.get(`SELECT password_hash, salt FROM rooms WHERE name = ?`, [room], (err, dbRoom) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
     }
-  );
+
+    if (dbRoom && dbRoom.password_hash) {
+      if (!password) {
+        return res.status(401).json({ error: 'Password required for this room.' });
+      }
+      const computedHash = hashPassword(password, dbRoom.salt);
+      if (computedHash !== dbRoom.password_hash) {
+        return res.status(401).json({ error: 'Incorrect room password.' });
+      }
+    }
+
+    db.all(
+      `SELECT id, sender, text, replyTo, time FROM messages WHERE room = ? ORDER BY created_at DESC LIMIT 100`,
+      [room],
+      (err, rows) => {
+        if (err) {
+          console.error('Error reading messages:', err);
+          return res.status(500).json({ error: 'Failed to retrieve messages' });
+        }
+        const messages = rows.reverse().map(row => ({
+          id: row.id,
+          sender: row.sender,
+          text: row.text,
+          replyTo: row.replyTo ? JSON.parse(row.replyTo) : null,
+          time: row.time
+        }));
+        res.json(messages);
+      }
+    );
+  });
 });
 
 app.post('/api/messages', (req, res) => {
   const { room, sender, text, replyTo } = req.body;
+  const password = req.headers['x-room-password'] || req.query.password;
   
   if (!room || !sender || !text || room.length > 50 || sender.length > 50 || text.length > 500) {
     return res.status(400).json({ error: 'Invalid input data' });
   }
 
-  db.get(`SELECT COUNT(1) as count FROM messages WHERE room = ?`, [room], (err, row) => {
+  db.get(`SELECT password_hash, salt FROM rooms WHERE name = ?`, [room], (err, dbRoom) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Database error' });
     }
-    
-    if (row.count === 0) {
-      db.get(`SELECT COUNT(DISTINCT room) as totalRooms FROM messages`, [], (err, roomRow) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Database error' });
-        }
-        if (roomRow.totalRooms >= MAX_ROOMS) {
-          return res.status(400).json({ error: 'Server room limit reached. Try again later.' });
-        }
-        saveMessage();
-      });
-    } else {
-      saveMessage();
+
+    if (dbRoom && dbRoom.password_hash) {
+      if (!password) {
+        return res.status(401).json({ error: 'Password required for this room.' });
+      }
+      const computedHash = hashPassword(password, dbRoom.salt);
+      if (computedHash !== dbRoom.password_hash) {
+        return res.status(401).json({ error: 'Incorrect room password.' });
+      }
     }
+
+    db.get(`SELECT COUNT(1) as count FROM messages WHERE room = ?`, [room], (err, row) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      if (row.count === 0) {
+        db.get(`SELECT COUNT(DISTINCT room) as totalRooms FROM messages`, [], (err, roomRow) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+          }
+          if (roomRow.totalRooms >= MAX_ROOMS) {
+            return res.status(400).json({ error: 'Server room limit reached. Try again later.' });
+          }
+          saveMessage();
+        });
+      } else {
+        saveMessage();
+      }
+    });
   });
 
   function saveMessage() {

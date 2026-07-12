@@ -3,21 +3,42 @@
   const originalFetch = window.fetch;
   window.fetch = async function(resource, init) {
     let url = typeof resource === 'string' ? resource : (resource instanceof URL ? resource.toString() : (resource && resource.url));
-    if (url && url.includes('/api/token')) {
+    if (url && url.includes('/api/')) {
       try {
         const urlObj = new URL(url, window.location.origin);
-        const room = urlObj.searchParams.get('room');
+        let room = urlObj.searchParams.get('room');
+
+        // Check if room name is in the JSON request body (e.g. for POST /api/messages)
+        if (!room && init && init.body && typeof init.body === 'string') {
+          try {
+            const bodyObj = JSON.parse(init.body);
+            room = bodyObj.room;
+          } catch (e) {}
+        }
+
         if (room) {
           const password = sessionStorage.getItem('room_pwd_' + room);
           if (password) {
-            urlObj.searchParams.set('password', password);
-            url = urlObj.toString();
-            if (typeof resource === 'string') {
-              resource = url;
-            } else if (resource instanceof URL) {
-              resource = urlObj;
-            } else if (resource && typeof resource === 'object') {
-              resource.url = url;
+            // Also append query parameter to /api/token for compatibility
+            if (url.includes('/api/token')) {
+              urlObj.searchParams.set('password', password);
+              url = urlObj.toString();
+              if (typeof resource === 'string') {
+                resource = url;
+              } else if (resource instanceof URL) {
+                resource = urlObj;
+              } else if (resource && typeof resource === 'object') {
+                resource.url = url;
+              }
+            }
+
+            // Securely pass room password in X-Room-Password HTTP header
+            init = init || {};
+            init.headers = init.headers || {};
+            if (init.headers instanceof Headers) {
+              init.headers.set('X-Room-Password', password);
+            } else {
+              init.headers['X-Room-Password'] = password;
             }
           }
         }
