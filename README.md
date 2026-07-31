@@ -6,7 +6,7 @@ A brutalist, technical, and ultra-minimalist voice & text communication app buil
 
 ## Features
 
-- **Real-Time Voice & Video**: Powered by LiveKit Cloud for low-latency audio rooms, screen sharing, and camera streams.
+- **Real-Time Voice & Video**: Powered by LiveKit for low-latency audio rooms, screen sharing, and camera streams.
 - **Persistent Text Chat**: Text chat rooms with history saved locally in a SQLite database (`chat.db`).
 - **Interactive UI Indicators**: Live visual speaking waves, mute/unmute indicators, and connection status/latency (RTT) monitors.
 - **Secure File Sharing**: Integrated upload channel for files (images, PDFs, ZIPs, text documents) with strict file-type & extension validation on the server side to prevent script execution vulnerabilities.
@@ -31,18 +31,17 @@ A brutalist, technical, and ultra-minimalist voice & text communication app buil
 ## Setup & Running
 
 ### 1. Prerequisites
-Ensure you have **Node.js** (v18+) installed on your machine.
+Ensure you have **Node.js** (v18+) and **Docker** installed on your machine/server.
 
 ### 2. Environment Variables (`.env`)
 Create a `.env` file in the root directory of the project:
 
 ```env
-PORT=3013
-LIVEKIT_API_KEY=your-livekit-api-key
-LIVEKIT_API_SECRET=your-livekit-api-secret
+VITE_LIVEKIT_URL=wss://livekit.maltasphere.com
+LIVEKIT_API_KEY=malta_key
+LIVEKIT_API_SECRET=malta_secret_123456789
+VITE_API_URL=https://connect.maltasphere.com
 ```
-
-*Note: You can retrieve your credentials by setting up a free project on [LiveKit Cloud](https://livekit.io/).*
 
 ### 3. Installation
 Install all dependencies using npm:
@@ -59,6 +58,50 @@ npm run server
 ```
 
 The application will be running at `http://localhost:3013`.
+
+---
+
+## Self-Hosted LiveKit Server Setup (Home Server / VPS)
+
+LiveKit is fully open-source and can be self-hosted on your home server or VPS with **zero usage limits** and **full support for screen sharing, audio, and video**.
+
+### 1. Run LiveKit Server with Docker (Auto-Start on Boot)
+
+Run the following command on your Home Server. The `--restart unless-stopped` flag ensures that the LiveKit container **automatically starts whenever the computer or Docker restarts**:
+
+```bash
+sudo docker run -d \
+  --name livekit-server \
+  --restart unless-stopped \
+  -p 7880:7880 \
+  -p 7881:7881 \
+  -p 7882:7882/udp \
+  -e LIVEKIT_KEYS="your_key: your_secret" \
+  livekit/livekit-server \
+  --config /dev/null
+```
+
+> **Note:** Make sure Docker service itself is enabled on system boot (standard on Ubuntu/Debian):
+> ```bash
+> sudo systemctl enable docker
+> ```
+
+### 2. Cloudflare Tunnel Configuration
+
+1. Open **Cloudflare Zero Trust Dashboard** -> **Networks** -> **Tunnels** -> Edit your tunnel.
+2. Add a Public Hostname:
+   - **Subdomain:** `livekit`
+   - **Domain:** `yourdomain.com`
+   - **Type:** `HTTP`
+   - **URL:** `localhost:7880`
+3. Test by opening `https://livekit.yourdomain.com` in your browser. It should display `OK`.
+
+### 3. Useful Docker Commands
+
+- **Check LiveKit status:** `sudo docker ps`
+- **View LiveKit logs:** `sudo docker logs -f livekit-server`
+- **Restart LiveKit:** `sudo docker restart livekit-server`
+- **Stop LiveKit:** `sudo docker stop livekit-server`
 
 ---
 
