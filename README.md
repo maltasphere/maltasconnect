@@ -37,10 +37,10 @@ Ensure you have **Node.js** (v18+) and **Docker** installed on your machine/serv
 Create a `.env` file in the root directory of the project:
 
 ```env
-VITE_LIVEKIT_URL=wss://livekit.maltasphere.com
-LIVEKIT_API_KEY=malta_key
-LIVEKIT_API_SECRET=malta_secret_123456789
-VITE_API_URL=https://connect.maltasphere.com
+VITE_LIVEKIT_URL=wss://livekit.yourdomain.com
+LIVEKIT_API_KEY=your_key
+LIVEKIT_API_SECRET=your_secret_123456789
+VITE_API_URL=https://yourdomain.com
 ```
 
 ### 3. Installation
