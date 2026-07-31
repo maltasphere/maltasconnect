@@ -113,6 +113,8 @@ app.use(helmet({
         "'self'", 
         "wss://*.livekit.cloud", 
         "https://*.livekit.cloud", 
+        "wss://*.maltasphere.com", 
+        "https://*.maltasphere.com", 
         "https://cloudflareinsights.com", 
         "https://*.cloudflareinsights.com"
       ],
